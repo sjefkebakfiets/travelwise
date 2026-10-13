@@ -4,8 +4,8 @@ Plaats compose.yaml en de privé .env naast elkaar in de Dockge-stackmap travelw
 
 Images:
 
-- ghcr.io/sjefkebakfiets/travelwise:0.2.0
-- ghcr.io/sjefkebakfiets/travelwise-migrations:0.2.0
+- ghcr.io/sjefkebakfiets/travelwise:latest
+- ghcr.io/sjefkebakfiets/travelwise-migrations:latest
 
 De tag is instelbaar met TRAVELWISE_IMAGE_TAG in .env. pull_policy: always haalt de geconfigureerde tag op bij starten; dit is geen achtergrond-updater. De migratie wordt vóór de app uitgevoerd. PostgreSQL en uploads blijven op de opgegeven TrueNAS-paden. Hostpoort: 3006.
 
@@ -37,3 +37,7 @@ Verwijder daarna de wachtwoordvariabele. De initializer weigert als een account 
 ## Updates en lokale build
 
 Maak vóór updates/migraties een back-up. Het oorspronkelijke broncode-buildbestand is bewaard als compose.build.yaml. Dat alternatief vereist wel een checkout in source. Kant-en-klare images worden uitsluitend gepubliceerd via de handmatig goedgekeurde workflow Publish Docker images.
+
+## Versiekeuze
+
+Travelwise-app en migratiecontainer gebruiken standaard latest en worden dankzij pull_policy: always bij het starten van de stack opgehaald. PostgreSQL blijft postgres:17-alpine en heeft geen always-pullbeleid. Zet TRAVELWISE_IMAGE_TAG=latest in .env als daar nog een andere tag staat. Dit start geen achtergrond-updater en verandert de PostgreSQL-hoofdversie niet.

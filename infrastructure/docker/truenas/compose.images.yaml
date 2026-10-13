@@ -17,7 +17,7 @@ services:
       start_period: 30s
 
   travelwise-migrate:
-    image: ghcr.io/sjefkebakfiets/travelwise-migrations:${TRAVELWISE_IMAGE_TAG:-0.2.0}
+    image: ghcr.io/sjefkebakfiets/travelwise-migrations:${TRAVELWISE_IMAGE_TAG:-latest}
     pull_policy: always
     environment:
       DATABASE_URL: postgresql://travelwise:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}@travelwise-db:5432/travelwise
@@ -27,7 +27,7 @@ services:
     restart: "no"
 
   travelwise-app:
-    image: ghcr.io/sjefkebakfiets/travelwise:${TRAVELWISE_IMAGE_TAG:-0.2.0}
+    image: ghcr.io/sjefkebakfiets/travelwise:${TRAVELWISE_IMAGE_TAG:-latest}
     pull_policy: always
     ports:
       - "${TRAVELWISE_PORT:-3006}:3000"
