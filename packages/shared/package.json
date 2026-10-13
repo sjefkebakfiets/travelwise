@@ -1,0 +1,6 @@
+{
+  "name": "@travelwise/shared",
+  "private": true,
+  "type": "module",
+  "exports": "./gps.ts"
+}

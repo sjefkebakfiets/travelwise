@@ -1,0 +1,36 @@
+{
+  "name": "travelwise",
+  "private": true,
+  "scripts": {
+    "test": "node --test packages/shared/*.test.ts",
+    "dev": "node node_modules/next/dist/bin/next dev apps/web --hostname 127.0.0.1",
+    "build": "node node_modules/prisma/build/index.js generate --config apps/web/prisma.config.ts && node node_modules/next/dist/bin/next build apps/web --webpack",
+    "typecheck": "node node_modules/typescript/bin/tsc --noEmit -p apps/web/tsconfig.json",
+    "db:validate": "node node_modules/prisma/build/index.js validate --config apps/web/prisma.config.ts",
+    "db:generate": "node node_modules/prisma/build/index.js generate --config apps/web/prisma.config.ts",
+    "db:migrate": "node node_modules/prisma/build/index.js migrate deploy --config apps/web/prisma.config.ts",
+    "admin:init": "node apps/web/scripts/init-admin.ts",
+    "test:integration": "node --test apps/web/tests/integration.test.ts",
+    "test:db": "node scripts/test-database.mjs",
+    "local:dev": "node scripts/local-development.mjs",
+    "test:db:local": "node scripts/test-local-database.mjs",
+    "test:http:local": "node scripts/smoke-local-http.mjs",
+    "test:docker": "node scripts/test-docker-distribution.mjs"
+  },
+  "dependencies": {
+    "@prisma/adapter-pg": "^7.10.0",
+    "@prisma/client": "^7.0.0",
+    "next": "^16.0.0",
+    "pg": "^8.23.1",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "zod": "^4.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "prisma": "^7.0.0",
+    "typescript": "^5.9.0"
+  }
+}

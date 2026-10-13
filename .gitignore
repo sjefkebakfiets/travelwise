@@ -1,0 +1,17 @@
+node_modules/
+.next/
+build/
+.gradle/
+local.properties
+.env
+.env.*
+!.env.example
+*.jks
+*.keystore
+*.tsbuildinfo
+apps/web/generated/
+
+.tools/
+npm-tool.tgz
+
+.local/

@@ -1,0 +1,167 @@
+generator client {
+ provider = "prisma-client"
+ output = "../generated/prisma"
+ importFileExtension = "ts"
+}
+datasource db {
+ provider = "postgresql"
+}
+model User {
+ id String @id @default(uuid()) @db.Uuid
+ email String @unique
+ passwordHash String
+ createdAt DateTime @default(now()) @db.Timestamptz(3)
+ devices Device[]
+ trips Trip[]
+}
+model Device {
+ id String @id @default(uuid()) @db.Uuid
+ userId String @db.Uuid
+ user User @relation(fields:[userId], references:[id], onDelete:Cascade)
+ name String
+ revokedAt DateTime? @db.Timestamptz(3)
+ tokens RefreshToken[]
+ accessTokens AccessToken[]
+ points GPSPoint[]
+ @@index([userId])
+}
+model RefreshToken {
+ id String @id @default(uuid()) @db.Uuid
+ deviceId String @db.Uuid
+ device Device @relation(fields:[deviceId], references:[id], onDelete:Cascade)
+ tokenHash String @unique
+ familyId String @db.Uuid
+ expiresAt DateTime @db.Timestamptz(3)
+ consumedAt DateTime? @db.Timestamptz(3)
+ revokedAt DateTime? @db.Timestamptz(3)
+ @@index([familyId])
+}
+model Trip {
+ id String @id @default(uuid()) @db.Uuid
+ userId String @db.Uuid
+ user User @relation(fields:[userId],references:[id],onDelete:Restrict)
+ title String
+ description String @default("")
+ status TripStatus @default(PLANNED)
+ timezone String @default("UTC")
+ startsAt DateTime? @db.Timestamptz(3)
+ endsAt DateTime? @db.Timestamptz(3)
+ createdAt DateTime @default(now()) @db.Timestamptz(3)
+ updatedAt DateTime @updatedAt @db.Timestamptz(3)
+ countries TripCountry[]
+ entries TripEntry[]
+ locations Location[]
+ points GPSPoint[]
+ segments RouteSegment[]
+ photos Photo[]
+ shares ShareLink[]
+ operations SyncOperation[]
+ @@index([userId,createdAt])
+}
+enum TripStatus {
+ PLANNED
+ ACTIVE
+ COMPLETED
+}
+model TripCountry {
+ tripId String @db.Uuid
+ trip Trip @relation(fields:[tripId],references:[id],onDelete:Cascade)
+ countryCode String @db.Char(2)
+ @@id([tripId,countryCode])
+}
+model TripEntry {
+ id String @id @default(uuid()) @db.Uuid
+ tripId String @db.Uuid
+ trip Trip @relation(fields:[tripId],references:[id],onDelete:Cascade)
+ title String
+ content Json
+ occurredAt DateTime @db.Timestamptz(3)
+ timezone String
+ latitude Float?
+ longitude Float?
+ tags String[]
+ @@index([tripId,occurredAt])
+}
+model Location {
+ id String @id @default(uuid()) @db.Uuid
+ tripId String @db.Uuid
+ trip Trip @relation(fields:[tripId],references:[id],onDelete:Cascade)
+ name String
+ latitude Float
+ longitude Float
+ source String @default("MANUAL")
+ @@index([tripId])
+}
+model GPSPoint {
+ id String @id @db.Uuid
+ tripId String @db.Uuid
+ trip Trip @relation(fields:[tripId],references:[id],onDelete:Restrict)
+ deviceId String @db.Uuid
+ device Device @relation(fields:[deviceId],references:[id],onDelete:Restrict)
+ segmentId String @db.Uuid
+ latitude Float
+ longitude Float
+ timestamp DateTime @db.Timestamptz(3)
+ accuracy Float
+ altitude Float?
+ speed Float?
+ bearing Float?
+ receivedAt DateTime @default(now()) @db.Timestamptz(3)
+ @@index([tripId,timestamp,id])
+ @@index([deviceId])
+}
+model RouteSegment {
+ id String @id @db.Uuid
+ tripId String @db.Uuid
+ trip Trip @relation(fields:[tripId],references:[id],onDelete:Cascade)
+ startsAt DateTime @db.Timestamptz(3)
+ endsAt DateTime? @db.Timestamptz(3)
+ @@index([tripId,startsAt])
+}
+model Photo {
+ id String @id @default(uuid()) @db.Uuid
+ tripId String @db.Uuid
+ trip Trip @relation(fields:[tripId],references:[id],onDelete:Restrict)
+ storageKey String @unique
+ mimeType String
+ sizeBytes Int
+ capturedAt DateTime? @db.Timestamptz(3)
+ latitude Float?
+ longitude Float?
+ @@index([tripId,capturedAt])
+}
+model ShareLink {
+ id String @id @default(uuid()) @db.Uuid
+ tripId String @db.Uuid
+ trip Trip @relation(fields:[tripId],references:[id],onDelete:Cascade)
+ tokenHash String @unique
+ revokedAt DateTime? @db.Timestamptz(3)
+ expiresAt DateTime? @db.Timestamptz(3)
+ delaySeconds Int @default(86400)
+ @@index([tripId])
+}
+model SyncOperation {
+ id String @id @db.Uuid
+ tripId String @db.Uuid
+ trip Trip @relation(fields:[tripId],references:[id],onDelete:Restrict)
+ payloadHash String
+ result Json
+ completedAt DateTime @default(now()) @db.Timestamptz(3)
+ @@index([tripId,completedAt])
+}
+
+model AccessToken {
+ id String @id @default(uuid()) @db.Uuid
+ deviceId String @db.Uuid
+ device Device @relation(fields:[deviceId], references:[id], onDelete:Cascade)
+ tokenHash String @unique
+ expiresAt DateTime @db.Timestamptz(3)
+ @@index([deviceId])
+ @@index([expiresAt])
+}
+model RateLimit {
+ key String @id
+ count Int
+ expiresAt DateTime @db.Timestamptz(3)
+ @@index([expiresAt])
+}

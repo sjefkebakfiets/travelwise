@@ -1,0 +1,12 @@
+services:
+  travelwise-migrate:
+    build:
+      context: ../..
+      dockerfile: infrastructure/docker/Dockerfile
+      target: migrations
+    environment:
+      DATABASE_URL: postgresql://travelwise:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}@travelwise-db:5432/travelwise
+    depends_on:
+      travelwise-db:
+        condition: service_healthy
+    restart: "no"

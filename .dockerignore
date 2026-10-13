@@ -1,0 +1,14 @@
+.git
+**/node_modules
+**/.next
+.env
+.env.*
+**/build
+**/.gradle
+.tools
+npm-tool.tgz
+**/local.properties
+**/*.jks
+**/*.keystore
+
+.local/
