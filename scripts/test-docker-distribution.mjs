@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
 import {execFileSync,spawnSync} from 'node:child_process';
 import {randomBytes,randomUUID} from 'node:crypto';
 const suffix=randomBytes(8).toString('hex'),network='travelwise-ci-'+suffix,database='travelwise_test_'+suffix,dbName='travelwise-db-'+suffix,appName='travelwise-app-'+suffix,appImage='travelwise-app-test:'+suffix,migrationImage='travelwise-migrations-test:'+suffix;
@@ -21,5 +22,6 @@ try {
  assert.equal((await call('/api/trips')).status,401);const login=await call('/api/auth/mobile/login','POST',{email:env.ADMIN_EMAIL,password:adminPassword,deviceName:'Docker test'});assert.equal(login.status,200);const token=login.data.accessToken;const trip=await call('/api/trips','POST',{title:'Docker persistence test'},token);assert.equal(trip.status,201);const batch={tripId:trip.data.id,points:[{id:randomUUID(),segmentId:randomUUID(),latitude:52,longitude:5,timestamp:'2026-10-13T12:00:00Z',accuracy:5}]};assert.equal((await call('/api/gps/batch','POST',batch,token)).status,200);assert.equal((await call('/api/gps/batch','POST',batch,token)).status,200);
  docker(['restart',appName]);base=publishedURL();await ready(base);assert.equal((await call('/api/trips/'+trip.data.id+'/gps','GET',undefined,token)).data.items.length,1);
  docker(['restart',dbName]);await ready(base);assert.equal((await call('/api/trips/'+trip.data.id+'/gps','GET',undefined,token)).data.items.length,1);
+ fs.mkdirSync('.tools',{recursive:true});fs.writeFileSync('.tools/docker-images.json',JSON.stringify({appImage,migrationImage}));
  console.log('Docker migration, bootstrap, HTTP API, static assets and restart persistence passed');
  } catch(error) {for(const name of containers){try{console.error('Test container: '+name+' state='+docker(['inspect','--format','{{.State.Status}}',name]).trim());const result=spawnSync('docker',['logs','--tail','60',name],{env,encoding:'utf8'});const logs=(result.stdout??'')+(result.stderr??'');console.error(logs.replaceAll(password,'[password]').replaceAll(adminPassword,'[password]'));}catch{}}throw error;} finally {for(const name of containers.reverse()){try{docker(['stop',name]);}catch{}}if(networkCreated){try{docker(['network','rm',network]);}catch{}}}
