@@ -22,4 +22,4 @@ try {
  docker(['restart',appName]);await ready(base);assert.equal((await call('/api/trips/'+trip.data.id+'/gps','GET',undefined,token)).data.items.length,1);
  docker(['restart',dbName]);await ready(base);assert.equal((await call('/api/trips/'+trip.data.id+'/gps','GET',undefined,token)).data.items.length,1);
  console.log('Docker migration, bootstrap, HTTP API, static assets and restart persistence passed');
-} finally {for(const name of containers.reverse()){try{docker(['stop',name]);}catch{}}if(networkCreated){try{docker(['network','rm',network]);}catch{}}}
+ } catch(error) {for(const name of containers){try{console.error('Test container: '+name+' state='+docker(['inspect','--format','{{.State.Status}}',name]).trim());const logs=docker(['logs','--tail','60',name]);console.error(logs.replaceAll(password,'[password]').replaceAll(adminPassword,'[password]'));}catch{}}throw error;} finally {for(const name of containers.reverse()){try{docker(['stop',name]);}catch{}}if(networkCreated){try{docker(['network','rm',network]);}catch{}}}
