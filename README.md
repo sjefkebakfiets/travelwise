@@ -15,3 +15,5 @@ Backend: docs/backend.md. Met Docker: npm run test:db voor een volledig afzonder
 Docker-distributie: zie docs/docker.md. TrueNAS-deployment gebeurt uitsluitend handmatig.
 
 Lokaal zonder Docker: Start-Travelwise.ps1. Handleiding: docs/local-windows.md.
+
+Docker-build en runtime inclusief herstartpersistentie zijn gecontroleerd via GitHub Actions. Zie docs/milestone-2.md voor de geslaagde run.

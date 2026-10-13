@@ -16,7 +16,7 @@ Administratorinitialisatie, scrypt-wachtwoorden, mobiele access/refresh-tokens, 
 
 ## Docker en GitHub
 
-Broncode wordt gepubliceerd naar https://github.com/sjefkebakfiets/travelwise. GitHub Actions bouwt en test de echte Docker-distributie, inclusief gegevensbehoud na containerherstarts. De lokale Docker-engine kon niet starten, dus lokale Docker-runtimevalidatie is niet uitgevoerd. Er is geen automatische TrueNAS-deployment of GHCR-publicatie.
+Broncode wordt gepubliceerd naar https://github.com/sjefkebakfiets/travelwise. GitHub Actions bouwt en test de echte Docker-distributie, inclusief gegevensbehoud na containerherstarts. De lokale Docker-engine kon niet starten. Docker-runtimevalidatie is wel succesvol uitgevoerd op GitHub Actions: app- en migratieimages, administratorinitialisatie, HTTP-API, CSS-assets en gegevensbehoud na herstarts van app en PostgreSQL. Er is geen automatische TrueNAS-deployment of GHCR-publicatie.
 
 ## Resterend
 
@@ -25,3 +25,9 @@ Auth.js-web-login, MapLibre-weergave en native Android-login, GPS-service, Room 
 ## Volgende stap
 
 De native Android-login en offline GPS-keten aansluiten op deze beveiligde API.
+
+## Geverifieerde GitHub-run
+
+https://github.com/sjefkebakfiets/travelwise/actions/runs/38440522347
+
+Alle controles geslaagd op commit 0b1682b. Deze documentatie-update wijzigt geen uitvoerbare code.
