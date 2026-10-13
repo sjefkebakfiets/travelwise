@@ -17,3 +17,5 @@ Docker-distributie: zie docs/docker.md. TrueNAS-deployment gebeurt uitsluitend h
 Lokaal zonder Docker: Start-Travelwise.ps1. Handleiding: docs/local-windows.md.
 
 Docker-build en runtime inclusief herstartpersistentie zijn gecontroleerd via GitHub Actions. Zie docs/milestone-2.md voor de geslaagde run.
+
+Voor TrueNAS kan Compose rechtstreeks uit deze openbare GitHub-repository bouwen. Gebruik infrastructure/docker/truenas/compose.yaml; de bestaande .env blijft bruikbaar.

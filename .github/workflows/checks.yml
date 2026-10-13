@@ -22,3 +22,16 @@ jobs:
       - run: npm run test:db
       - run: npm run build
       - run: npm run test:docker
+
+  github-source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Verify Docker build from public GitHub source
+        env:
+          DOCKER_BUILD_CONTEXT: https://github.com/sjefkebakfiets/travelwise.git#${{ github.sha }}
+        run: node scripts/test-docker-distribution.mjs

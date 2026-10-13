@@ -1,0 +1,60 @@
+name: travelwise
+services:
+  travelwise-db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: travelwise
+      POSTGRES_DB: travelwise
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - ${POSTGRES_DATA_DIR:-/mnt/raid-z-1/apps/dockge/data/travelwise/postgres}:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U travelwise -d travelwise"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  travelwise-migrate:
+    build:
+      context: "https://github.com/sjefkebakfiets/travelwise.git#main"
+      dockerfile: infrastructure/docker/Dockerfile
+      target: migrations
+    pull_policy: build
+    environment:
+      DATABASE_URL: postgresql://travelwise:${POSTGRES_PASSWORD}@travelwise-db:5432/travelwise
+    depends_on:
+      travelwise-db:
+        condition: service_healthy
+    restart: "no"
+
+  travelwise-app:
+    build:
+      context: "https://github.com/sjefkebakfiets/travelwise.git#main"
+      dockerfile: infrastructure/docker/Dockerfile
+      target: runtime
+    pull_policy: build
+    ports:
+      - "${TRAVELWISE_PORT:-3006}:3000"
+    environment:
+      NODE_ENV: production
+      HOSTNAME: 0.0.0.0
+      PORT: "3000"
+      DATABASE_URL: postgresql://travelwise:${POSTGRES_PASSWORD}@travelwise-db:5432/travelwise
+      AUTH_SECRET: ${AUTH_SECRET}
+      UPLOAD_DIR: /data/uploads
+    volumes:
+      - ${UPLOAD_DATA_DIR:-/mnt/raid-z-1/apps/dockge/data/travelwise/uploads}:/data/uploads
+    depends_on:
+      travelwise-db:
+        condition: service_healthy
+      travelwise-migrate:
+        condition: service_completed_successfully
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/api/ready').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 60s

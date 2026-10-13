@@ -5,7 +5,7 @@ services:
     environment:
       POSTGRES_USER: travelwise
       POSTGRES_DB: travelwise
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - ${POSTGRES_DATA_DIR:-/mnt/raid-z-1/apps/dockge/data/travelwise/postgres}:/var/lib/postgresql/data
     restart: unless-stopped
@@ -17,26 +17,32 @@ services:
       start_period: 30s
 
   travelwise-migrate:
-    image: ghcr.io/sjefkebakfiets/travelwise-migrations:${TRAVELWISE_IMAGE_TAG:-latest}
-    pull_policy: always
+    build:
+      context: "https://github.com/sjefkebakfiets/travelwise.git#main"
+      dockerfile: infrastructure/docker/Dockerfile
+      target: migrations
+    pull_policy: build
     environment:
-      DATABASE_URL: postgresql://travelwise:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}@travelwise-db:5432/travelwise
+      DATABASE_URL: postgresql://travelwise:${POSTGRES_PASSWORD}@travelwise-db:5432/travelwise
     depends_on:
       travelwise-db:
         condition: service_healthy
     restart: "no"
 
   travelwise-app:
-    image: ghcr.io/sjefkebakfiets/travelwise:${TRAVELWISE_IMAGE_TAG:-latest}
-    pull_policy: always
+    build:
+      context: "https://github.com/sjefkebakfiets/travelwise.git#main"
+      dockerfile: infrastructure/docker/Dockerfile
+      target: runtime
+    pull_policy: build
     ports:
       - "${TRAVELWISE_PORT:-3006}:3000"
     environment:
       NODE_ENV: production
       HOSTNAME: 0.0.0.0
       PORT: "3000"
-      DATABASE_URL: postgresql://travelwise:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}@travelwise-db:5432/travelwise
-      AUTH_SECRET: ${AUTH_SECRET:?Set AUTH_SECRET in .env}
+      DATABASE_URL: postgresql://travelwise:${POSTGRES_PASSWORD}@travelwise-db:5432/travelwise
+      AUTH_SECRET: ${AUTH_SECRET}
       UPLOAD_DIR: /data/uploads
     volumes:
       - ${UPLOAD_DATA_DIR:-/mnt/raid-z-1/apps/dockge/data/travelwise/uploads}:/data/uploads

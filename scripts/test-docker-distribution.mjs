@@ -4,12 +4,13 @@ import {execFileSync,spawnSync} from 'node:child_process';
 import {randomBytes,randomUUID} from 'node:crypto';
 const suffix=randomBytes(8).toString('hex'),network='travelwise-ci-'+suffix,database='travelwise_test_'+suffix,dbName='travelwise-db-'+suffix,appName='travelwise-app-'+suffix,appImage='travelwise-app-test:'+suffix,migrationImage='travelwise-migrations-test:'+suffix;
 const password=randomBytes(32).toString('hex'),adminPassword=randomBytes(32).toString('hex');const env={...process.env,POSTGRES_PASSWORD:password,DATABASE_URL:'postgresql://travelwise_test:'+password+'@'+dbName+':5432/'+database,ADMIN_EMAIL:'docker-'+suffix+'@example.test',ADMIN_PASSWORD:adminPassword,AUTH_SECRET:randomBytes(32).toString('hex')};
+const buildContext=process.env.DOCKER_BUILD_CONTEXT??'.';
 const containers=[];let networkCreated=false;
 function docker(args,inherit=false){return execFileSync('docker',args,{env,stdio:inherit?'inherit':'pipe',encoding:'utf8'});}
 async function ready(base){for(let i=0;i<120;i++){try{if((await fetch(base+'/api/ready',{signal:AbortSignal.timeout(1000)})).ok)return;}catch{}await new Promise(r=>setTimeout(r,500));}throw Error('Container did not become ready');}
 try {
- docker(['build','-f','infrastructure/docker/Dockerfile','-t',appImage,'.'],true);
- docker(['build','--target','migrations','-f','infrastructure/docker/Dockerfile','-t',migrationImage,'.'],true);
+ docker(['build','-f','infrastructure/docker/Dockerfile','-t',appImage,buildContext],true);
+ docker(['build','--target','migrations','-f','infrastructure/docker/Dockerfile','-t',migrationImage,buildContext],true);
  docker(['network','create',network]);networkCreated=true;
  docker(['run','--detach','--rm','--network',network,'--name',dbName,'-e','POSTGRES_PASSWORD','-e','POSTGRES_USER=travelwise_test','-e','POSTGRES_DB='+database,'postgres:17-alpine']);containers.push(dbName);
  let databaseReady=false;for(let i=0;i<120;i++){if(spawnSync('docker',['exec',dbName,'pg_isready','-U','travelwise_test','-d',database],{stdio:'ignore'}).status===0){databaseReady=true;break;}await new Promise(r=>setTimeout(r,500));}if(!databaseReady)throw Error('Database container did not become ready');

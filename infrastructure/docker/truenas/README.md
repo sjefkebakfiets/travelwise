@@ -1,43 +1,29 @@
-# TrueNAS / Dockge — GitHub-images
+# TrueNAS / Dockge — rechtstreeks uit GitHub
 
-Plaats compose.yaml en de privé .env naast elkaar in de Dockge-stackmap travelwise. Er is geen source-map of lokale build nodig. Compose haalt de app en migratiecontainer automatisch op uit GitHub Container Registry wanneer de stack wordt gestart.
+Alle broncode staat in de openbare repository https://github.com/sjefkebakfiets/travelwise. Plaats compose.yaml en jouw bestaande .env naast elkaar in de Dockge-stackmap.
 
-Images:
+Deze Compose gebruikt GitHub zelf als buildcontext. Docker haalt de actuele main-branch automatisch op en bouwt de app- en migratiecontainer op TrueNAS. Er is geen source-map, GitHub-token of registry-aanmelding nodig. PostgreSQL blijft postgres:17-alpine. Reisgegevens blijven op de bestaande TrueNAS-paden en de webpoort is 3006.
 
-- ghcr.io/sjefkebakfiets/travelwise:latest
-- ghcr.io/sjefkebakfiets/travelwise-migrations:latest
+## Starten
 
-De tag is instelbaar met TRAVELWISE_IMAGE_TAG in .env. pull_policy: always haalt de geconfigureerde tag op bij starten; dit is geen achtergrond-updater. De migratie wordt vóór de app uitgevoerd. PostgreSQL en uploads blijven op de opgegeven TrueNAS-paden. Hostpoort: 3006.
+Gebruik in Dockge Deploy/Start. Of voer vanuit de stackmap uit:
 
-## Eenmalige registry-aanmelding
+    docker compose up -d --build
 
-De images zijn privé. Meld de Docker-CLI die Dockge gebruikt eenmaal aan:
+Alleen Pull bouwt geen images: de app en migraties kunnen bij Pull als skipped verschijnen. Dat is normaal voor deze configuratie. Bij starten worden ze vanuit GitHub gebouwd. De eerste build kan enkele minuten duren. pull_policy: build zorgt voor een build bij een volgende start, waarbij Docker bestaande buildlagen kan hergebruiken.
 
-    docker login ghcr.io -u sjefkebakfiets
-
-Gebruik als wachtwoord een GitHub personal access token (classic) met read:packages en toegang tot de package. Voer deze uitsluitend in bij de wachtwoordprompt. Zet de token niet in Compose, .env of Git. De aanmelding moet in het gebruikersprofiel / de container van Dockge plaatsvinden; een login in een ander profiel wordt niet vanzelf gedeeld.
-
-## Installeren
-
-    docker compose pull
-    docker compose up -d
-
-In Dockge kun je na de registry-aanmelding de stack starten. Het adres is http://192.168.178.252:3006. Er wordt niets automatisch vanuit Codex naar TrueNAS gedeployd.
-
-Gebruik bij een bestaande PostgreSQL-datamap het bestaande databasewachtwoord. De gegenereerde .env is alleen lokaal aanwezig en is uitgesloten van Git.
+Gebruik voor updates dezelfde start-/buildactie. Er draait geen automatische achtergrond-updater. Maak vóór databasewijzigingen een back-up.
 
 ## Eerste account
 
-Stel tijdelijk ADMIN_EMAIL en ADMIN_PASSWORD in de serverterminal in en voer uit:
+Stel ADMIN_EMAIL en ADMIN_PASSWORD tijdelijk in en voer uit:
 
     docker compose run --rm -e ADMIN_EMAIL -e ADMIN_PASSWORD travelwise-migrate node apps/web/scripts/init-admin.ts
 
-Verwijder daarna de wachtwoordvariabele. De initializer weigert als een account bestaat. Web-login en Android-tracking zijn nog niet aangesloten.
+Verwijder daarna de wachtwoordvariabele. De initializer weigert als er al een account bestaat. Web-login en Android-tracking moeten nog worden aangesloten.
 
-## Updates en lokale build
+## Andere bestanden
 
-Maak vóór updates/migraties een back-up. Het oorspronkelijke broncode-buildbestand is bewaard als compose.build.yaml. Dat alternatief vereist wel een checkout in source. Kant-en-klare images worden uitsluitend gepubliceerd via de handmatig goedgekeurde workflow Publish Docker images.
+compose.github.yaml is dezelfde GitHub-buildconfiguratie. compose.images.yaml bevat de eerder gepubliceerde GHCR-imagevariant; die vereist toegang tot beide containerpackages. compose.build.yaml gebruikt een lokale checkout in source.
 
-## Versiekeuze
-
-Travelwise-app en migratiecontainer gebruiken standaard latest en worden dankzij pull_policy: always bij het starten van de stack opgehaald. PostgreSQL blijft postgres:17-alpine en heeft geen always-pullbeleid. Zet TRAVELWISE_IMAGE_TAG=latest in .env als daar nog een andere tag staat. Dit start geen achtergrond-updater en verandert de PostgreSQL-hoofdversie niet.
+Docker-documentatie: https://docs.docker.com/reference/compose-file/build/
